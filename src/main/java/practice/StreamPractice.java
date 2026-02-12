@@ -1,7 +1,10 @@
 package practice;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import model.Candidate;
 import model.Person;
 
@@ -14,7 +17,13 @@ public class StreamPractice {
      * "Can't get min value from list: < Here is our input 'numbers' >"
      */
     public int findMinEvenNumber(List<String> numbers) {
-        return 0;
+        return numbers.stream()
+                .flatMap(string -> Arrays.stream(string.split(",")))
+                .mapToInt(Integer::parseInt)
+                .filter(num -> num % 2 == 0)
+                .min()
+                .orElseThrow(() -> new RuntimeException("Can't get min value from list: "
+                        + numbers.toString()));
     }
 
     /**
@@ -23,7 +32,12 @@ public class StreamPractice {
      * But before that subtract 1 from each element on an odd position (having the odd index).
      */
     public Double getOddNumsAverage(List<Integer> numbers) {
-        return 0D;
+        add1toOddIndexesInList(numbers);
+        return numbers.stream()
+                .filter(number -> Math.abs(number) % 2 == 1)
+                .mapToDouble(Integer::doubleValue)
+                .average()
+                .orElseThrow(() -> new NoSuchElementException());
     }
 
     /**
@@ -35,7 +49,11 @@ public class StreamPractice {
      * Example: select men who can be recruited to army (from 18 to 27 years old inclusively).
      */
     public List<Person> selectMenByAge(List<Person> peopleList, int fromAge, int toAge) {
-        return Collections.emptyList();
+        return peopleList.stream()
+                .filter(person -> person.getAge() >= fromAge
+                        && person.getAge() <= toAge
+                        && person.getSex().equals(Person.Sex.MAN))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -50,7 +68,18 @@ public class StreamPractice {
      */
     public List<Person> getWorkablePeople(int fromAge, int femaleToAge,
                                           int maleToAge, List<Person> peopleList) {
-        return Collections.emptyList();
+        return peopleList.stream()
+                .filter(person -> {
+                    if (person.getAge() < fromAge) {
+                        return false; // менше мінімального віку — не підходить
+                    }
+                    if (person.getSex().equals(Person.Sex.WOMAN)) {
+                        return person.getAge() <= femaleToAge; // перевірка для жінок
+                    } else {
+                        return person.getAge() <= maleToAge; // перевірка для чоловіків
+                    }
+                })
+                .collect(Collectors.toList());
     }
 
     /**
@@ -59,7 +88,13 @@ public class StreamPractice {
      * return the names of all cats whose owners are women from `femaleAge` years old inclusively.
      */
     public List<String> getCatsNames(List<Person> peopleList, int femaleAge) {
-        return Collections.emptyList();
+        return peopleList.stream()
+                .filter(person -> person.getSex().equals(Person.Sex.WOMAN)
+                        && person.getAge() >= femaleAge)
+                .map(person -> person.getCats())
+                .flatMap(cats -> cats.stream())
+                .map(cat -> cat.getName())
+                .collect(Collectors.toList());
     }
 
     /**
@@ -75,6 +110,19 @@ public class StreamPractice {
      * parametrized with Candidate in CandidateValidator.
      */
     public List<String> validateCandidates(List<Candidate> candidates) {
-        return Collections.emptyList();
+        Predicate<Candidate> isvalid = new CandidateValidator();
+        return candidates.stream()
+                .filter(isvalid)
+                .map(Candidate::getName)
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    private void add1toOddIndexesInList(List<Integer> numbers) {
+        for (int i = 0; i < numbers.size(); i++) {
+            if (i % 2 == 1) {
+                numbers.set(i, numbers.get(i) - 1);
+            }
+        }
     }
 }
