@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import model.Candidate;
 import model.Person;
 
@@ -32,12 +33,13 @@ public class StreamPractice {
      * But before that subtract 1 from each element on an odd position (having the odd index).
      */
     public Double getOddNumsAverage(List<Integer> numbers) {
-        add1toOddIndexesInList(numbers);
-        return numbers.stream()
-                .filter(number -> Math.abs(number) % 2 == 1)
-                .mapToDouble(Integer::doubleValue)
+        return IntStream.range(0, numbers.size())
+                .map(i -> i % 2 == 1
+                        ? numbers.get(i) - 1
+                        : numbers.get(i))
+                .filter(n -> n % 2 != 0)
                 .average()
-                .orElseThrow(() -> new NoSuchElementException());
+                .orElseThrow(NoSuchElementException::new);
     }
 
     /**
@@ -71,12 +73,12 @@ public class StreamPractice {
         return peopleList.stream()
                 .filter(person -> {
                     if (person.getAge() < fromAge) {
-                        return false; // менше мінімального віку — не підходить
+                        return false;
                     }
                     if (person.getSex().equals(Person.Sex.WOMAN)) {
-                        return person.getAge() <= femaleToAge; // перевірка для жінок
+                        return person.getAge() <= femaleToAge;
                     } else {
-                        return person.getAge() <= maleToAge; // перевірка для чоловіків
+                        return person.getAge() <= maleToAge;
                     }
                 })
                 .collect(Collectors.toList());
@@ -116,13 +118,5 @@ public class StreamPractice {
                 .map(Candidate::getName)
                 .sorted()
                 .collect(Collectors.toList());
-    }
-
-    private void add1toOddIndexesInList(List<Integer> numbers) {
-        for (int i = 0; i < numbers.size(); i++) {
-            if (i % 2 == 1) {
-                numbers.set(i, numbers.get(i) - 1);
-            }
-        }
     }
 }
